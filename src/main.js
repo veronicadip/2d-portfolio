@@ -1,5 +1,6 @@
 import {k} from "./kaboomContext.js";
 import {scaleFactor} from "./constants.js";
+import {displayDialogue} from "./utils.js";
 
 // Load character sprite
 k.loadSprite("spritesheet", "./spritesheet.png", {
@@ -60,6 +61,7 @@ k.scene("main", async () => {
                 if(boundary.name) {
                     player.onCollide(boundary.name, () => {
                         player.isInDialog = true;
+                        displayDialogue("test", () => player.isInDialog = false)
                     })
                 }
             }
