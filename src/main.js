@@ -1,4 +1,5 @@
 import {k} from "./kaboomContext.js";
+import {scaleFactor} from "./constants.js";
 
 // Load character sprite
 k.loadSprite("spritesheet", "./spritesheet.png", {
@@ -14,8 +15,58 @@ k.loadSprite("spritesheet", "./spritesheet.png", {
     }
 });
 
-// Load map sprite
+// Set map and background
 k.loadSprite("map", "./map.png");
-
-// Set background
 k.setBackground(k.Color.fromHex("#311047"));
+
+// Creating a scene
+k.scene("main", async () => {
+    const mapData = await (await fetch("./map.json")).json();
+    const layers = mapData.layers;
+
+    const map = k.make([k.sprite("map"), k.pos(0), k.scale(scaleFactor)]);
+
+    const player = k.make([
+        k.sprite("spritesheet", {anim: "idle-down"}),
+        // area = hitbox
+        k.area({
+        shape: new k.Rect(k.vec2(0, 3), 10, 10)
+        }),
+        k.body(),
+        k.anchor("center"),
+        k.pos(),
+        k.scale(scaleFactor),
+        {
+            speed: 250,
+            direction: "down",
+            isInDialogue: false
+        },
+        "player",
+    ]);
+
+    // Display dialog when the player collide with a boundary
+    for(const layer of layers) {
+        if(layer.name === "bounderies") {
+            for(const boundary of layer.objects) {
+                map.add([
+                    k.area({
+                        shape: new k.Rect(k.vec2(0), boundary.width, boundary.height)
+                    }),
+                    k.body({isStatic: true}),
+                    k.pos(boundary.x, boundary.y),
+                    boundary.name
+                ]);
+
+                if(boundary.name) {
+                    player.onCollide(boundary.name, () => {
+                        player.isInDialog = true;
+                    })
+                }
+            }
+        }
+    }
+
+});
+
+// Defining a default scene
+k.go("main")
